@@ -11,13 +11,17 @@ import java.io.*;
  * @author Irfan Mauludin, 2019-06-27
  */
 public class DeviceListCompiler {
-    private ProcessBuilder processBuilder = new ProcessBuilder();
     private JSONParser parser = new JSONParser();
+    private String homeDir = System.getProperty("user.home");
+    private Runtime runtime = Runtime.getRuntime();
 
     public void printDeviceListInJsonFile(){
-        processBuilder.command("sh","-c",Constants.MAIN_RESOURCES + "devices.sh");
+        File devicesJson = new File(homeDir+"/devices.json");
+
         try{
-            Process process = processBuilder.start();
+            devicesJson.delete();
+            Thread.sleep(2000);
+            Process process = runtime.exec("xcrun simctl list devices -j");
             StringBuilder output = new StringBuilder();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
@@ -26,28 +30,27 @@ public class DeviceListCompiler {
             }
             int exitVal = process.waitFor();
             if (exitVal == 0){
+                File file = new File(homeDir+"/devices.json");
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                    writer.write(output.toString());
+                }
                 System.out.println("The devices.json file successfully created!");
-                System.out.println(output);
             }
             else{
-                System.out.println("Failure, device.json file can't be created!");
+                System.out.println("Failure, devices.json file can't be created!");
             }
         } catch (IOException e){
             e.printStackTrace();
-        } catch (InterruptedException e){
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public JSONObject getDevicesList(){
         try{
-            Object obj = parser.parse(new FileReader(Constants.MAIN_RESOURCES + "devices.json"));
+            Object obj = parser.parse(new FileReader(homeDir + "/devices.json"));
             JSONObject device = (JSONObject) obj;
-            JSONObject deviceObject = (JSONObject) device.get("devices");
-
-//            System.out.println("devices json object is: \n");
-//            System.out.println(deviceObject.toString()+"\n\n");
-            return deviceObject;
+            return (JSONObject) device.get("devices");
         } catch (FileNotFoundException e){
             e.printStackTrace();
         } catch (IOException e){
@@ -59,17 +62,17 @@ public class DeviceListCompiler {
     }
 
     public JSONArray getDeviceListByOSVersion(String osVersion){
-        JSONArray deviceArray = (JSONArray) getDevicesList().get("iOS "+osVersion);
-        return deviceArray;
+        return (JSONArray) getDevicesList().get("iOS "+osVersion);
     }
 
     public String getDeviceUdid(String osVersion, String deviceName){
         String udid = null;
         JSONArray deviceArray = getDeviceListByOSVersion(osVersion);
-        for(int i=0;i<deviceArray.size();i++){
-            JSONObject deviceObj = (JSONObject)  deviceArray.get(i);
-            if(deviceObj!=null && deviceName.equals(deviceObj.get("name"))){
+        for (Object o : deviceArray) {
+            JSONObject deviceObj = (JSONObject) o;
+            if (deviceObj != null && deviceName.equals(deviceObj.get("name"))) {
                 udid = (String) deviceObj.get("udid");
+                break;
             }
         }
         System.out.println("Device udid         : "+udid);

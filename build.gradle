@@ -29,5 +29,5 @@ dependencies {
 
 clean.doFirst {
     file('build').deleteDir()
-    file('src/main/resources/devices.json').delete()
+    file("libs").deleteDir()
 }
