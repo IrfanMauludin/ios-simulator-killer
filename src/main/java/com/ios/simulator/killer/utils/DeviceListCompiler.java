@@ -62,7 +62,8 @@ public class DeviceListCompiler {
     }
 
     public JSONArray getDeviceListByOSVersion(String osVersion){
-        return (JSONArray) getDevicesList().get("iOS "+osVersion);
+        osVersion = osVersion.replace(".","-");
+        return (JSONArray) getDevicesList().get("com.apple.CoreSimulator.SimRuntime.iOS-"+osVersion);
     }
 
     public String getDeviceUdid(String osVersion, String deviceName){
@@ -70,7 +71,7 @@ public class DeviceListCompiler {
         JSONArray deviceArray = getDeviceListByOSVersion(osVersion);
         for (Object o : deviceArray) {
             JSONObject deviceObj = (JSONObject) o;
-            if (deviceObj != null && deviceName.equals(deviceObj.get("name"))) {
+            if (deviceObj != null && deviceName.equals(deviceObj.get("name")) && deviceObj.get("state").equals("Booted")) {
                 udid = (String) deviceObj.get("udid");
                 break;
             }

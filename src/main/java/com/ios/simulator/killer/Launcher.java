@@ -35,7 +35,11 @@ public class Launcher {
 
         deviceListCompiler.printDeviceListInJsonFile();
         deviceUdid = deviceListCompiler.getDeviceUdid(osVersion,deviceName);
-        iosSimulatorKiller.killSimulator(deviceUdid);
+        if(deviceUdid!=null) {
+            iosSimulatorKiller.killSimulator(deviceUdid);
+        }else {
+            System.out.println("Device is in shutdown state!");
+        }
 
     }
 
