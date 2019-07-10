@@ -62,19 +62,32 @@ public class DeviceListCompiler {
     }
 
     public JSONArray getDeviceListByOSVersion(String osVersion){
+        return (JSONArray) getDevicesList().get("iOS "+osVersion);
+    }
+
+    public JSONArray getDeviceListFromSimRuntime(String osVersion){
         osVersion = osVersion.replace(".","-");
         return (JSONArray) getDevicesList().get("com.apple.CoreSimulator.SimRuntime.iOS-"+osVersion);
     }
 
+    public String getUdidFromDeviceArray(String deviceName, JSONArray deviceArray){
+        for (Object obj : deviceArray) {
+            JSONObject deviceObj = (JSONObject) obj;
+            if(deviceObj != null && deviceName.equals(deviceObj.get("name")) && deviceObj.get("state").equals("Booted")){
+                return (String) deviceObj.get("udid");
+            }
+        }
+        return null;
+    }
+
     public String getDeviceUdid(String osVersion, String deviceName){
         String udid = null;
-        JSONArray deviceArray = getDeviceListByOSVersion(osVersion);
-        for (Object o : deviceArray) {
-            JSONObject deviceObj = (JSONObject) o;
-            if (deviceObj != null && deviceName.equals(deviceObj.get("name")) && deviceObj.get("state").equals("Booted")) {
-                udid = (String) deviceObj.get("udid");
-                break;
-            }
+        if (getDeviceListFromSimRuntime(osVersion) == null || getDeviceListFromSimRuntime(osVersion).size() == 0){
+            udid = getUdidFromDeviceArray(deviceName,getDeviceListByOSVersion(osVersion));
+            System.out.println("device udid is "+udid);
+        }else if (getDeviceListByOSVersion(osVersion) == null || getDeviceListByOSVersion(osVersion).size() == 0){
+            udid = getUdidFromDeviceArray(deviceName,getDeviceListFromSimRuntime(osVersion));
+            System.out.println("device udid from sim runtime is "+udid);
         }
         System.out.println("Device udid         : "+udid);
         return udid;
