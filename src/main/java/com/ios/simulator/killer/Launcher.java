@@ -18,9 +18,9 @@ public class Launcher {
         String deviceUdid;
         ArrayList<String> params = new ArrayList<>();
 
-        if((System.getenv("OS_VERSION") != null) && (System.getenv("DEVICE_NAME") != null)){
-            osVersion = System.getenv("OS_VERSION");
-            deviceName = System.getenv("DEVICE_NAME");
+        if((System.getProperty("OS_VERSION") != null) && (System.getProperty("DEVICE_NAME") != null)){
+            osVersion = System.getProperty("OS_VERSION");
+            deviceName = System.getProperty("DEVICE_NAME");
         } else if(args.length == 0){
             System.out.println("Please enter iOS version and device name.");
             System.exit(0);
